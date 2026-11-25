@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MEMETİLİS — V8</title>
+<style>
+:root{--bg:#08111d;--panel:#14243b;--panel2:#1b304d;--line:#536f91;--cyan:#65dcff;--yellow:#ffd45e;--red:#f34e62;--green:#6ee7ae;--ink:#07101d}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:12px;background:radial-gradient(ellipse at 50% 0%,#3b5573,#14253d 48%,#07101b 100%);color:#f4f8ff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;display:flex;justify-content:center;align-items:center}button{font:inherit;cursor:pointer;color:inherit}button:disabled{opacity:.42;cursor:not-allowed}#app{width:min(1280px,100%)}.screen{display:none}.screen.active{display:block}.panel{padding:22px;border:2px solid #536e92;border-radius:22px;background:linear-gradient(155deg,#203957f5,#101a2dfb);box-shadow:0 18px 55px #0009}.brand{display:flex;gap:14px;align-items:center;margin-bottom:16px}.brandmark{font-size:56px}h1{margin:0;font-size:clamp(36px,6vw,64px);font-weight:1000;letter-spacing:1px;text-shadow:3px 4px 0 #07101d}.tagline{color:#d2e6ff;font-weight:800}.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;align-items:center}.heroArt{min-height:320px;border:1px solid #506c95;border-radius:18px;background:radial-gradient(circle,#3b5c86,#172c49 65%,#10192a);display:grid;place-items:center;position:relative;overflow:hidden}.heroArt:after{content:'✦       ·       ✧      ·       ✦';position:absolute;top:18px;color:#c7eeff;letter-spacing:14px}.sub{color:#c6d6ec;line-height:1.55}.selection,.rolePick{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.pick,.roleBtn,.secondary{border:1px solid #536f95;background:#111f35;border-radius:13px;padding:10px 13px;font-weight:850}.pick{flex:1;min-width:160px;display:flex;gap:8px;align-items:center;text-align:left}.pick.selected,.roleBtn.selected{border:2px solid var(--cyan);box-shadow:0 0 16px #43d9ff44;background:#174260}.mini{font-size:34px}.roleTitle{font-weight:900;margin:15px 0 6px}.roleBtn{flex:1;min-width:110px}.bigbtn{border:0;border-radius:13px;padding:14px 18px;background:linear-gradient(#ffe889,#ffb900);color:#182033;font-weight:1000;font-size:18px;box-shadow:0 5px 0 #966200}.heroButtons{display:grid;gap:10px;margin-top:18px}.secondary:hover,.pick:hover,.roleBtn:hover{filter:brightness(1.15)}.how{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.how div{border:1px solid #435d7e;border-radius:12px;padding:10px;background:#101c30;color:#d4e2f3;font-size:13px}.how b{display:block;color:white;margin-bottom:3px}.footer{text-align:center;color:#9cb1cb;font-size:12px;margin-top:11px}
+.gameTop{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px}.stat{padding:7px 10px;border:1px solid #536f95;border-radius:10px;background:#101c30;font-size:13px;font-weight:900}.stat span{color:var(--cyan)}#gameWrap{position:relative;border:3px solid #647f9f;border-radius:17px;overflow:hidden;background:#07101d;box-shadow:0 18px 45px #0009;isolation:isolate}#game{display:block;width:100%;height:auto;aspect-ratio:1100/700;touch-action:none}.hud{position:absolute;z-index:3;left:10px;top:10px;display:flex;flex-direction:column;gap:6px;max-width:245px;pointer-events:none}.hudBox{background:#091526eF;border:1px solid #7e9ab9;border-radius:9px;padding:7px 9px;font-size:12px;font-weight:850;text-shadow:0 1px 2px #000}.taskbar{height:7px;border-radius:9px;background:#334761;overflow:hidden;margin-top:5px}.taskbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#39c9ff,#79edbd)}.chatToggle{position:absolute;z-index:20;right:10px;top:10px;border:2px solid #83a0c5;border-radius:10px;background:#10223bf2;padding:8px 12px;font-weight:950;box-shadow:0 3px 8px #0008}.chatPanel{position:absolute;z-index:21;right:10px;top:54px;width:min(340px,48%);height:330px;display:none;flex-direction:column;border:2px solid #83a0c5;border-radius:13px;overflow:hidden;background:#081426fa;box-shadow:0 10px 35px #000d;pointer-events:auto}.chatPanel.open{display:flex}.chatHead{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;background:#1c3454;font-size:13px;font-weight:950}.chatMessages{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px;font-size:12px}.chatMsg{max-width:100%;padding:7px 9px;background:#172b47;border:1px solid #294765;border-radius:9px;line-height:1.35;overflow-wrap:anywhere}.chatMsg.system{background:#27354b;color:#d9e5f5}.chatMsg b{color:#7ee1ff}.chatForm{display:flex;gap:6px;padding:8px;border-top:1px solid #435c7d;background:#0c192d;pointer-events:auto}.chatForm input{display:block;min-width:0;flex:1;border:1px solid #7794b8;border-radius:8px;background:#050e1d;color:#fff;padding:10px;font:inherit;font-size:13px;outline:none;pointer-events:auto;user-select:text}.chatForm input:focus{border-color:#5ee0ff;box-shadow:0 0 0 2px #5ee0ff33}.chatForm button{border:0;border-radius:8px;background:#147ca8;padding:0 12px;font-weight:950}.nearby{padding:7px 9px;background:#10223c;border-top:1px solid #3c5575;color:#d5e8ff;font-size:11px;min-height:32px}.gameButtons{position:absolute;z-index:5;left:10px;right:10px;bottom:10px;display:flex;gap:7px;flex-wrap:wrap;justify-content:center;pointer-events:none}.gameButtons button{pointer-events:auto;border:2px solid #6f8cac;border-radius:10px;background:#122641f5;padding:9px 11px;font-size:12px;font-weight:950;box-shadow:0 3px 0 #040a12}.gameButtons .danger{background:#98283d;border-color:#ff7888}.gameButtons .kill{background:#b32a40;border-color:#ff8090}.gameButtons .vent{background:#51348b;border-color:#bba2ff}.gameButtons .emergency{background:#c72e39;border-color:#ff9a76}.toast{display:none;position:absolute;z-index:30;top:12px;left:50%;transform:translateX(-50%);max-width:82%;padding:8px 14px;border:1px solid #79e5ff;border-radius:999px;background:#071425f5;text-align:center;font-size:13px;font-weight:950;pointer-events:none}.modal{display:none;position:absolute;z-index:40;inset:0;align-items:center;justify-content:center;padding:14px;background:#020812d9}.modal.show{display:flex}.modalCard{width:min(620px,100%);max-height:94%;overflow:auto;border:2px solid #718cad;border-radius:16px;background:linear-gradient(155deg,#243b5a,#0d192c);padding:17px;box-shadow:0 18px 50px #000c}.modalCard h2{margin:0 0 7px}.modalCard p{color:#d1deef;line-height:1.45}.modalActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.modalActions button{flex:1;min-width:125px}.choiceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.choice{border:1px solid #607da2;border-radius:10px;padding:10px;background:#12233d;text-align:left;font-weight:850}.choice.selected{border:2px solid var(--cyan);background:#174260}.legend{display:flex;flex-wrap:wrap;gap:11px;margin-top:8px;color:#c8daef;font-size:12px}.legend span{display:flex;gap:5px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.mapCanvas{display:block;width:100%;height:auto;background:#07101d;border:1px solid #627d9e;border-radius:10px}.smallnote{font-size:12px;color:#aebfda;margin-top:8px}.meetingChat{margin-top:12px;border:1px solid #617c9c;border-radius:12px;background:#081426;overflow:hidden}.meetingChatTitle{padding:8px 10px;background:#1b3453;font-size:13px;font-weight:950}.meetingChatFeed{height:150px;overflow:auto;padding:9px;display:flex;flex-direction:column;gap:6px;background:#081426}.meetingChatLine{padding:6px 8px;border:1px solid #294765;border-radius:8px;background:#172b47;font-size:12px;line-height:1.35;overflow-wrap:anywhere}.meetingChatLine.system{background:#27354b;color:#d9e5f5}.meetingChatLine b{color:#7ee1ff}.meetingChatForm{display:flex;gap:6px;padding:8px;border-top:1px solid #435c7d;background:#0c192d}.meetingChatForm input{min-width:0;flex:1;border:1px solid #7794b8;border-radius:8px;background:#050e1d;color:#fff;padding:10px;font:inherit;font-size:13px;outline:none}.meetingChatForm button{border:0;border-radius:8px;background:#147ca8;padding:0 12px;font-weight:950;color:#fff}.meetingHint{font-size:11px;color:#aebfda;margin-top:5px}.endTitle{font-size:30px;font-weight:1000}
+
+.taskLocations,.selfMapPanel{position:absolute;z-index:4;top:145px;width:225px;max-height:230px;overflow:hidden;border:1px solid #8ba6c6;border-radius:11px;background:#071526ed;box-shadow:0 5px 18px #0009;pointer-events:none}
+.taskLocations{left:10px}.selfMapPanel{top:10px;right:10px;width:214px;padding:7px}
+.overlayTitle{padding:6px 8px;background:#1d3655;color:#dff4ff;font-size:11px;font-weight:1000;letter-spacing:.4px}
+#taskLocationRows{padding:6px 8px;max-height:190px;overflow:hidden;font-size:10px;line-height:1.4}
+.taskRow{padding:4px 2px;border-bottom:1px solid #5c769233;color:#eef5ff}.taskRow.done{color:#83d9a9;text-decoration:line-through}.taskRow b{color:#ffd76d;font-weight:900}.selfMapPanel canvas{display:block;width:100%;height:auto;margin-top:4px;border-radius:5px;background:#07101d}
+.gameButtons .track{background:#146878;border-color:#72e5ef}.gameButtons .ghostAction{background:#39618f;border-color:#b8dcff}.photoCard{background:linear-gradient(145deg,#284667,#111f35);min-height:84px;text-align:center}.photoCard small{display:block;color:#bfeeff;font-weight:1000;letter-spacing:.7px}.ghostHint{color:#bdeaff;font-weight:900}
+.meetingChatForm{position:relative;z-index:2;pointer-events:auto}.meetingChatForm input{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;touch-action:manipulation;position:relative;z-index:3}.meetingChatForm button{position:relative;z-index:3;pointer-events:auto}
+@media(max-width:760px){.taskLocations{top:135px;left:5px;width:150px;max-height:170px}.selfMapPanel{top:5px;right:5px;width:145px;padding:4px}#taskLocationRows{font-size:9px;max-height:130px}.overlayTitle{font-size:9px;padding:4px 5px}.gameButtons .track{padding:7px 8px;font-size:10px}}
+
+@media(max-width:760px){body{padding:4px;align-items:flex-start}.panel{padding:13px}.hero{grid-template-columns:1fr}.heroArt{min-height:170px}.how{grid-template-columns:1fr}.hud{max-width:155px;left:5px;top:5px}.hudBox{font-size:10px;padding:5px}.chatToggle{right:5px;top:5px}.chatPanel{right:5px;top:48px;width:min(310px,88%);height:290px}.gameButtons{left:4px;right:4px;bottom:4px;gap:4px}.gameButtons button{padding:7px 8px;font-size:10px}.gameTop .stat{font-size:11px;padding:6px}.choiceGrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+<section id="menuScreen" class="screen active panel">
+ <div class="brand"><div class="brandmark">🚀</div><div><h1>MEMETİLİS</h1><div class="tagline">Görevini yap, sahtekârı bul!</div></div></div>
+ <div class="hero"><div>
+  <h2 style="font-size:28px;margin:0 0 8px">Skeld tarzı uzay gemisi</h2>
+  <p class="sub">Geniş, çok odalı gemide dolaş. Küçük görev oyunlarını tamamla, toplantıda botların oylarını gör. Sahtekâr KILL yapar; Mühendis vent kullanır; Takipçi bir oyuncuyu kısa süre izler.</p>
+  <div class="selection">
+   <button class="pick selected" id="pickRafa" type="button" onclick="chooseCharacter('rafa')"><span class="mini">🕶️</span><span><b>Rafa</b><br><small>Siyah kıyafet</small></span></button>
+   <button class="pick" id="pickZeynep" type="button" onclick="chooseCharacter('zeynep')"><span class="mini">💙</span><span><b>Zeynep</b><br><small>Mavi karakter</small></span></button>
+  </div>
+  <div class="roleTitle">🎲 Roller her maçta gizlice dağıtılır</div>
+  <p class="sub" style="margin:4px 0 12px">Maç başlamadan kimsenin rolü açıklanmaz. Kendi rolünü yalnızca maç başlayınca öğrenirsin.</p>
+  <div class="heroButtons"><button class="bigbtn" type="button" onclick="startGame()">▶ OYUNA BAŞLA</button><button class="secondary" type="button" onclick="showHow()">❔ Kontroller ve kurallar</button></div>
+ </div><div class="heroArt"><div style="font-size:120px;filter:drop-shadow(0 12px 12px #0009)">🧑‍🚀</div></div></div>
+ <div class="how" id="howPanel"><div><b>⌨️ Hareket</b>WASD / ok tuşları veya zemine tıklayarak yürü.</div><div><b>🛠️ Görev</b>Görev işaretine yaklaş, E tuşuna bas.</div><div><b>🔪 KILL</b>Sahtekârken yakındaki görünür oyuncuya yaklaş.</div><div><b>🌀 VENT</b>Sahtekâr veya Mühendisken vent kullan; çıkacağın odayı seç.</div><div><b>📡 TAKİP</b>Takipçi rolünde T tuşuyla bir bot seç ve 12 saniye izle.</div><div><b>📢 Gürültücü</b>Öldürülürsen konumunda ekibe alarm çıkar.</div><div><b>👻 Hayalet</b>Ölünce rastgele Koruyucu Melek veya Influencer olursun. F: Koru · I: Görsel gönder.</div><div><b>💬 Sohbet</b>Sohbet yalnızca toplantılarda açılır; toplantıda GÖNDER veya Enter kullan.</div><div><b>🚨 Acil toplantı</b>Her maçta bir kez kullanılır. Rapor da ceset yanındayken çalışır.</div></div>
+ <div class="footer">MEMETİLİS V8 • Türkçe • Gizli roller ve hayalet yetenekleri</div>
+</section>
+<section id="gameScreen" class="screen">
+ <div class="gameTop"><div class="stat">🚀 MEMETİLİS <span id="roleLabel">SAHTEKÂR</span></div><div class="stat">Görev: <span id="taskText">0 / 4</span><div class="taskbar"><i id="taskFill"></i></div></div><div class="stat">⏱️ <span id="timer">05:00</span></div><button class="secondary" type="button" onclick="returnToMenu()">☰ Menü</button></div>
+ <div id="gameWrap">
+  <canvas id="game" width="1100" height="700" aria-label="MEMETİLİS uzay gemisi haritası"></canvas>
+  <div class="hud"><div class="hudBox" id="objective">🔪 Sahtekârsın!</div><div class="hudBox">WASD / Ok: yürü<br>E: Görev · K: KILL · V: VENT<br>T: TAKİP · R: Rapor · M: Harita</div><div class="hudBox" id="roomLabel">📍 Yemekhane</div><div class="hudBox" id="visionLabel">👀 Görüşte: 0 oyuncu</div></div>
+  <aside class="taskLocations" id="taskLocations" aria-label="Görev konumları"><div class="overlayTitle">📍 GÖREV KONUMU</div><div id="taskLocationRows">Görevler yükleniyor...</div></aside>
+  <aside class="selfMapPanel" aria-label="Yalnızca kendi konumunu gösteren mini harita"><div class="overlayTitle">🗺️ GEMİ HARİTASI · SEN</div><canvas id="selfMiniMap" width="260" height="150"></canvas></aside>
+  <button type="button" class="chatToggle" id="chatToggle" style="display:none" onclick="toggleChat()">💬 SOHBET <span id="chatUnread"></span></button>
+  <aside class="chatPanel" id="chatPanel" style="display:none" aria-label="Toplantı dışında kapalı sohbet">
+   <div class="chatHead"><span>💬 Mürettebat Sohbeti</span><span>● BOTLAR</span></div>
+   <div class="chatMessages" id="chatMessages" aria-live="polite"></div>
+   <div class="nearby" id="nearbyPlayers">Görüş alanında kimse yok.</div>
+   <form class="chatForm" id="chatForm" autocomplete="off"><input id="chatInput" name="message" type="text" maxlength="110" placeholder="Mesajını buraya yaz..." aria-label="Sohbet mesajı"><button type="submit" id="sendChat">GÖNDER</button></form>
+  </aside>
+  <div class="toast" id="toast"></div>
+  <div class="gameButtons">
+   <button type="button" id="mapBtn" onclick="openMap()">🗺️ HARİTA (M)</button>
+   <button type="button" id="useBtn" onclick="interact()">🛠️ GÖREV (E)</button>
+   <button type="button" class="kill" id="killBtn" onclick="killTarget()">🔪 KILL (K)</button>
+   <button type="button" class="vent" id="ventBtn" onclick="ventAction()">🌀 VENT (V)</button>
+   <button type="button" class="track" id="trackBtn" onclick="openTrackerMenu()">📡 TAKİP (T)</button>
+   <button type="button" class="danger" id="reportBtn" onclick="reportBody()">📢 RAPOR (R)</button>
+   <button type="button" class="emergency" id="emergencyBtn" onclick="emergencyMeeting()">🚨 ACİL TOPLANTI</button>
+   <button type="button" class="track" id="guardianBtn" style="display:none" onclick="openGuardianMenu()">🪽 KORU</button>
+   <button type="button" class="track" id="influencerBtn" style="display:none" onclick="openInfluencerMenu()">📸 FOTO GÖNDER</button>
+  </div>
+  <div class="modal" id="modal"><div class="modalCard" id="modalCard"></div></div>
+ </div>
+ <div class="footer">V8 • Gürültücü, Koruyucu Melek ve Influencer • Sohbet yalnızca toplantıda açık</div>
+</section>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const VIEW_W=1100,VIEW_H=700,CELL=48,COLS=48,ROWS=30,WORLD_W=COLS*CELL,WORLD_H=ROWS*CELL;
+let chosen='rafa',roleChoice='random',playerRole='crew',ghostRole=null,ghostProtectCooldown=0,ghostImageCharges=0,protectedTargetId=null,protectionRemaining=0,influencerImages=[],noisemakerAlert=null,lastKillerName='',trackTargetId=null,trackRemaining=0,trackCooldown=0,running=false,player,bots=[],tasks=[],playerTasks=[],bodies=[],keys={},last=0,elapsed=0,gameTime=300,completed=0,killCooldown=0,toastTimeout,meeting=false,playerAlive=true,gameEnded=false,playerImpostor=false,inVent=false,ventIndex=-1,chatUnread=0,clickPath=[],emergencyUsed=false,meetingReason="";
+const botNames=['Kırmızı','Yeşil','Mor','Sarı','Turuncu','Pembe'];
+const botColors=['#e94758','#31b777','#a34bd6','#ffbf32','#f08b36','#e77ab4'];
+const roomDefs=[
+ {name:'Üst Motor',gx:2,gy:2,gw:8,gh:6,color:'#746d5e'},
+ {name:'Reaktör',gx:2,gy:11,gw:8,gh:7,color:'#594d68'},
+ {name:'Güvenlik',gx:12,gy:11,gw:6,gh:6,color:'#5a6a72'},
+ {name:'Revir',gx:12,gy:3,gw:7,gh:6,color:'#71818a'},
+ {name:'Yemekhane',gx:21,gy:2,gw:10,gh:9,color:'#817f71',shape:'octagon'},
+ {name:'Silahlar',gx:34,gy:3,gw:7,gh:6,color:'#786b63'},
+ {name:'Oksijen',gx:35,gy:11,gw:5,gh:5,color:'#637c78'},
+ {name:'Navigasyon',gx:41,gy:10,gw:6,gh:7,color:'#667b83'},
+ {name:'İdare',gx:29,gy:14,gw:8,gh:6,color:'#786f68'},
+ {name:'Depo',gx:18,gy:18,gw:12,gh:9,color:'#77776b'},
+ {name:'Elektrik',gx:9,gy:22,gw:7,gh:5,color:'#655d70'},
+ {name:'Alt Motor',gx:2,gy:21,gw:6,gh:5,color:'#736a5b'},
+ {name:'İletişim',gx:31,gy:23,gw:6,gh:4,color:'#5c7882'},
+ {name:'Kalkanlar',gx:40,gy:20,gw:7,gh:6,color:'#827e6d'}
+];
+const corridors=[
+ [10,4,2,2],[5,8,2,3],[10,13,2,2],[14,9,2,2],[19,5,2,2],[31,5,3,2],[37,9,2,2],[39,12,2,2],[39,15,2,2],[25,11,2,7],[29,17,2,2],[15,23,3,2],[7,23,2,2],[29,23,2,2],[37,24,3,2],[4,18,2,3]
+];
+let grid=[],roomGrid=[];
+function carve(x,y,w,h,room=-1,shape='rect'){
+ for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){
+  if(xx<0||yy<0||xx>=COLS||yy>=ROWS)continue;
+  if(shape==='octagon'){
+   const cut=(xx<x+2&&yy<y+2)||(xx>x+w-3&&yy<y+2)||(xx<x+2&&yy>y+h-3)||(xx>x+w-3&&yy>y+h-3);
+   if(cut)continue;
+  }
+  grid[yy][xx]=1;if(room>=0)roomGrid[yy][xx]=room;
+ }
+}
+function buildMap(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));roomGrid=Array.from({length:ROWS},()=>Array(COLS).fill(-1));roomDefs.forEach((r,i)=>carve(r.gx,r.gy,r.gw,r.gh,i,r.shape));corridors.forEach(c=>carve(...c));}
+buildMap();
+const taskDefs=[
+ {name:'Motorlara Yakıt Doldur',room:'Üst Motor',x:5,y:4,type:'fuel'},{name:'Reaktör Başlatma Dizisi',room:'Reaktör',x:4,y:14,type:'reactor'},{name:'Güvenlik Kameralarını İncele',room:'Güvenlik',x:15,y:13,type:'cameras'},{name:'Revir Tarayıcısı',room:'Revir',x:16,y:5,type:'scan'},{name:'Navigasyon Rotasını Ayarla',room:'Navigasyon',x:44,y:13,type:'asteroids'},{name:'Asteroitleri Temizle',room:'Silahlar',x:37,y:5,type:'asteroids'},{name:'Oksijen Filtresini Temizle',room:'Oksijen',x:37,y:13,type:'filter'},{name:'Kartı Okut',room:'İdare',x:31,y:16,type:'card'},{name:'Depo Kasalarını Sırala',room:'Depo',x:23,y:22,type:'sort'},{name:'Kabloları Bağla',room:'Elektrik',x:12,y:24,type:'wires'},{name:'Alt Motora Yakıt Doldur',room:'Alt Motor',x:4,y:23,type:'fuel'},{name:'Verileri Yükle',room:'İletişim',x:34,y:25,type:'upload'},{name:'Kalkanları Etkinleştir',room:'Kalkanlar',x:43,y:23,type:'switch'}
+];
+const ventDefs=[
+ {name:'Üst Motor',x:5,y:6},{name:'Reaktör',x:4,y:15},{name:'Güvenlik',x:15,y:14},{name:'Revir',x:16,y:7},{name:'Yemekhane',x:26,y:8},{name:'Silahlar',x:38,y:7},{name:'İdare',x:32,y:18},{name:'Depo',x:24,y:24},{name:'Elektrik',x:12,y:24},{name:'İletişim',x:34,y:25},{name:'Kalkanlar',x:44,y:23},{name:'Navigasyon',x:44,y:13}
+];
+const vents=ventDefs.map(v=>({...v,x:v.x*CELL+CELL/2,y:v.y*CELL+CELL/2}));
+const furniture=[
+ [4,3,2,2,'engine'],[4,13,2,2,'reactor'],[13,12,2,2,'screen'],[14,4,2,1,'bed'],[16,4,2,1,'bed'],
+ [23,3,2,1,'table'],[27,3,2,1,'table'],[24,6,2,1,'table'],[28,7,2,1,'table'],[23,8,2,1,'table'],
+ [35,4,2,1,'weapon'],[38,4,2,1,'weapon'],[36,12,2,2,'oxygen'],[42,12,2,2,'nav'],[31,15,3,1,'admin'],
+ [19,20,2,2,'crate'],[22,23,2,2,'crate'],[26,21,2,2,'crate'],[10,23,2,1,'wire'],[4,22,2,2,'engine'],
+ [32,24,2,1,'radio'],[41,22,2,2,'shield']
+];
+function chooseCharacter(ch){chosen=ch;document.getElementById('pickRafa').classList.toggle('selected',ch==='rafa');document.getElementById('pickZeynep').classList.toggle('selected',ch==='zeynep')}
+function chooseRole(r){roleChoice='random'}
+function canUseVent(){return playerRole==='impostor'||playerRole==='engineer'}
+function roleName(){return ({impostor:'SAHTEKÂR 🔪',crew:'MÜRETTEBAT',engineer:'MÜHENDİS 🛠️',tracker:'TAKİPÇİ 📡',noisemaker:'GÜRÜLTÜCÜ 📢'})[playerRole]||'MÜRETTEBAT'}
+function ghostRoleName(){return ghostRole==='guardian'?'KORUYUCU MELEK 🪽':ghostRole==='influencer'?'INFLUENCER 📸':''}
+function showHow(){const h=document.getElementById('howPanel');h.style.display=h.style.display==='grid'?'none':'grid'}
+function startGame(){document.getElementById('menuScreen').classList.remove('active');document.getElementById('gameScreen').classList.add('active');resetGame();running=true;last=performance.now();requestAnimationFrame(loop)}
+function resetGame(){
+ const spawns=[[5,5],[15,7],[25,5],[37,6],[32,17],[23,22]];
+ // Her maçta tüm roller gizlice ve rastgele dağıtılır.
+ const rolePool=['crew','crew','crew','engineer','tracker','noisemaker','impostor'];
+ playerRole=rolePool[Math.floor(Math.random()*rolePool.length)];
+ playerImpostor=playerRole==='impostor';ghostRole=null;ghostProtectCooldown=0;ghostImageCharges=0;protectedTargetId=null;protectionRemaining=0;influencerImages=[];noisemakerAlert=null;lastKillerName='';
+ player={x:26*CELL+CELL/2,y:7*CELL+CELL/2,speed:4.25,alive:true,name:chosen==='rafa'?'Rafa':'Zeynep',speech:'',speechUntil:0};
+ bots=botNames.map((n,i)=>({id:i,name:n,x:spawns[i][0]*CELL+CELL/2,y:spawns[i][1]*CELL+CELL/2,color:botColors[i],alive:true,impostor:false,role:['crew','crew','engineer','tracker','noisemaker'][Math.floor(Math.random()*5)],path:[],currentTask:null,workTime:0,stuckTime:0,lastX:spawns[i][0]*CELL+CELL/2,lastY:spawns[i][1]*CELL+CELL/2,killTimer:14+Math.random()*5,suspicion:{player:0},reportTarget:null,speech:'',speechUntil:0,protectedUntil:0,influencerCue:null}));
+ if(!playerImpostor){const killer=bots[Math.floor(Math.random()*bots.length)];killer.impostor=true;killer.role='impostor';}
+ else bots.forEach(b=>{b.impostor=false;if(b.role==='impostor')b.role='crew'});
+ tasks=taskDefs.map((t,i)=>({...t,id:i,x:t.x*CELL+CELL/2,y:t.y*CELL+CELL/2,done:false}));playerTasks=shuffle([...tasks]).slice(0,5);bots.forEach(b=>chooseBotTask(b));
+ bodies=[];elapsed=0;completed=0;killCooldown=0;playerAlive=true;gameEnded=false;meeting=false;meetingReason='';inVent=false;ventIndex=-1;keys={};clickPath=[];emergencyUsed=false;chatUnread=0;trackTargetId=null;trackRemaining=0;trackCooldown=0;
+ document.getElementById('chatMessages').innerHTML='';document.getElementById('chatUnread').textContent='';document.getElementById('chatPanel').classList.remove('open');document.getElementById('chatToggle').style.display='none';
+ document.getElementById('taskText').textContent='0 / '+(playerImpostor?0:playerTasks.length);document.getElementById('taskFill').style.width='0%';document.getElementById('timer').textContent='05:00';document.getElementById('roleLabel').textContent='• '+roleName();
+ document.getElementById('objective').textContent=playerRole==='impostor'?'🔪 Sahtekârsın! KILL ve VENT kullan.':playerRole==='engineer'?'🛠️ Mühendissin! Görev yapabilir ve vent kullanabilirsin.':playerRole==='tracker'?'📡 Takipçisin! T ile bir oyuncunun izini sür.':playerRole==='noisemaker'?'📢 Gürültücüsün! Öldürülürsen konumun ekibe sinyal verir.':'🧭 Mürettebatsın! Görevleri tamamla.';
+ document.getElementById('modal').classList.remove('show');document.getElementById('emergencyBtn').disabled=false;document.getElementById('emergencyBtn').textContent='🚨 ACİL TOPLANTI (1)';
+ addChat('Sistem','Maç başladı. Roller gizlice dağıtıldı.');addChat('Sistem','Senin rolün: '+roleName()+'.');addChat('Sistem','Görevleri tamamla, toplantıda konuş ve oy kullan.');showToast('Rolün: '+roleName());renderTaskLocations();updateButtons();
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function returnToMenu(){running=false;document.getElementById('gameScreen').classList.remove('active');document.getElementById('menuScreen').classList.add('active')}
+function showToast(msg){const e=document.getElementById('toast');e.textContent=msg;e.style.display='block';clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>e.style.display='none',2600)}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function cellOf(x,y){return{x:Math.max(0,Math.min(COLS-1,Math.floor(x/CELL))),y:Math.max(0,Math.min(ROWS-1,Math.floor(y/CELL)))}}
+function walkable(x,y){const c=cellOf(x,y);return!!grid[c.y]?.[c.x]}
+function canStand(x,y){const r=9;return walkable(x-r,y-r)&&walkable(x+r,y-r)&&walkable(x-r,y+r)&&walkable(x+r,y+r)}
+function moveEntity(e,dx,dy){let nx=e.x+dx;if(canStand(nx,e.y))e.x=nx;let ny=e.y+dy;if(canStand(e.x,ny))e.y=ny}
+function findPath(sx,sy,tx,ty){const s=cellOf(sx,sy),t=cellOf(tx,ty);if(!grid[s.y]?.[s.x]||!grid[t.y]?.[t.x])return[];let q=[s],head=0,seen=new Set([s.x+','+s.y]),prev=new Map(),found=false;const dirs=[[1,0],[-1,0],[0,1],[0,-1]];while(head<q.length){const p=q[head++];if(p.x===t.x&&p.y===t.y){found=true;break}for(const [dx,dy] of dirs){const x=p.x+dx,y=p.y+dy,k=x+','+y;if(x<0||y<0||x>=COLS||y>=ROWS||!grid[y][x]||seen.has(k))continue;seen.add(k);prev.set(k,p.x+','+p.y);q.push({x,y})}}if(!found)return[];let out=[],k=t.x+','+t.y,sk=s.x+','+s.y;while(k!==sk){const [x,y]=k.split(',').map(Number);out.push({x:x*CELL+CELL/2,y:y*CELL+CELL/2});k=prev.get(k);if(!k)return[]}return out.reverse()}
+function setPath(e,t){e.path=findPath(e.x,e.y,t.x,t.y);e.goal={x:t.x,y:t.y}}
+function followPath(e,dt,speed){if(!e.path?.length)return;const p=e.path[0],d=dist(e,p);if(d<7){e.path.shift();return}const oldX=e.x,oldY=e.y;moveEntity(e,(p.x-e.x)/d*speed*dt*60,(p.y-e.y)/d*speed*dt*60);if(Math.hypot(e.x-oldX,e.y-oldY)<.1)e.stuckTime=(e.stuckTime||0)+dt;else e.stuckTime=0;if(e.stuckTime>1.5){e.path=[];if(e.goal)setPath(e,e.goal);e.stuckTime=0}}
+function nearestTask(){let best=null,bd=1e9;for(const t of playerTasks){if(t.done)continue;const d=dist(player,t);if(d<bd){bd=d;best=t}}return bd<68?best:null}
+function nearestBody(){let best=null,bd=1e9;for(const b of bodies){if(b.reported)continue;const d=dist(player,b);if(d<bd){bd=d;best=b}}return bd<70?best:null}
+function nearestBodyForBot(bot,maxDistance=245){let best=null,bd=maxDistance;for(const body of bodies){if(body.reported)continue;const d=dist(bot,body);if(d<bd){bd=d;best=body}}return best}
+function nearestVent(){let best=-1,bd=1e9;for(let i=0;i<vents.length;i++){const d=dist(player,vents[i]);if(d<bd){bd=d;best=i}}return bd<58?best:-1}
+function visibleBots(){const radius=playerImpostor?260:205;return bots.filter(b=>b.alive&&dist(player,b)<=radius)}
+function nearestVisibleBot(max=68){let best=null,bd=max;for(const b of visibleBots()){const d=dist(player,b);if(d<bd){bd=d;best=b}}return best}
+function updateButtons(){const locked=gameEnded||meeting;const near=playerAlive?nearestVisibleBot(72):null;document.getElementById('useBtn').disabled=locked||playerImpostor||!nearestTask()||inVent;const kb=document.getElementById('killBtn');kb.style.display=playerAlive&&playerImpostor?'':'none';kb.disabled=locked||!playerAlive||!playerImpostor||!near||killCooldown>0||inVent;kb.textContent=killCooldown>0?'🔒 KILL ('+Math.ceil(killCooldown)+' sn)':'🔪 KILL (K)';const vb=document.getElementById('ventBtn');vb.style.display=playerAlive&&canUseVent()?'':'none';vb.disabled=locked||!playerAlive||!canUseVent()||(!inVent&&nearestVent()<0);vb.textContent=inVent?'🌀 VENTTEN ÇIK (V)':'🌀 VENT (V)';const tb=document.getElementById('trackBtn');tb.style.display=playerAlive&&playerRole==='tracker'?'':'none';tb.disabled=locked||!playerAlive||playerRole!=='tracker'||trackCooldown>0;tb.textContent=trackCooldown>0?'📡 TAKİP ('+Math.ceil(trackCooldown)+' sn)':'📡 TAKİP (T)';document.getElementById('reportBtn').disabled=locked||!playerAlive||!nearestBody()||inVent;document.getElementById('emergencyBtn').disabled=locked||!playerAlive||emergencyUsed||inVent;const ga=document.getElementById('guardianBtn'),inf=document.getElementById('influencerBtn');ga.style.display=!playerAlive&&ghostRole==='guardian'?'':'none';ga.disabled=locked||ghostProtectCooldown>0||!bots.some(b=>b.alive&&!b.impostor);ga.textContent=ghostProtectCooldown>0?'🪽 KORU ('+Math.ceil(ghostProtectCooldown)+' sn)':'🪽 KORU';inf.style.display=!playerAlive&&ghostRole==='influencer'?'':'none';inf.disabled=locked||ghostImageCharges<=0||!bots.some(b=>b.alive&&!b.impostor);inf.textContent='📸 FOTO GÖNDER ('+ghostImageCharges+')';document.getElementById('visionLabel').textContent='👀 Görüşte: '+visibleBots().length+' oyuncu';document.getElementById('nearbyPlayers').textContent=visibleBots().length?'Görüşte: '+visibleBots().map(b=>b.name).join(' · '):'Görüş alanında kimse yok.'}
+
+function killTarget(){if(!running||meeting||gameEnded||!playerAlive)return;if(!playerImpostor){showToast('KILL yalnızca Sahtekâr rolünde kullanılabilir.');return}if(inVent){showToast('Önce ventten çık.');return}const target=nearestVisibleBot(70);if(!target){showToast('KILL için görüş alanında bir oyuncuya yaklaşmalısın.');return}if(killCooldown>0){showToast('KILL bekleme süresi: '+Math.ceil(killCooldown)+' sn');return}target.alive=false;target.path=[];bodies.push({x:target.x,y:target.y,name:target.name,reported:false});if(target.role==='noisemaker')triggerNoisemakerAlert(target.x,target.y,target.name);for(const witness of bots){if(witness.alive&&witness!==target&&dist(witness,player)<300)witness.suspicion.player=(witness.suspicion.player||0)+2.4}killCooldown=22;setSpeech(player,'');addChat('Sistem',target.name+' artık görünmüyor.');showToast(target.name+' oyundan çıkarıldı.');updateButtons();checkImpostorWin()}
+function openVentMenu(){if(!playerAlive||!canUseVent()||!running||meeting||gameEnded)return;const start=inVent?ventIndex:nearestVent();if(start<0){showToast('Vent girişine yaklaşmalısın.');return}const card=document.getElementById('modalCard');card.innerHTML='<h2>🌀 Vent ağı</h2><p>Çıkmak istediğin odanın ventini seç. Her hedefe doğrudan geçebilirsin.</p><div class="choiceGrid" id="ventChoices"></div><div class="modalActions"><button class="secondary" id="stayVent" type="button">'+(inVent?'Ventte kal':'Bu ventte saklan')+'</button><button class="secondary" id="closeVent" type="button">İptal</button></div>';const list=document.getElementById('ventChoices');vents.forEach((v,i)=>{if(i===start&&!inVent)return;const bt=document.createElement('button');bt.type='button';bt.className='choice';bt.textContent='🌀 '+v.name;bt.onclick=()=>{inVent=false;ventIndex=-1;player.x=v.x;player.y=v.y;clickPath=[];document.getElementById('modal').classList.remove('show');showToast(v.name+' ventinden çıktın.');updateButtons()};list.appendChild(bt)});document.getElementById('stayVent').onclick=()=>{for(const witness of bots){if(witness.alive&&dist(witness,player)<310)witness.suspicion.player=(witness.suspicion.player||0)+2.8}inVent=true;ventIndex=start;clickPath=[];document.getElementById('modal').classList.remove('show');showToast('Ventte saklanıyorsun. V ile tekrar hedef seç.');updateButtons()};document.getElementById('closeVent').onclick=()=>document.getElementById('modal').classList.remove('show');document.getElementById('modal').classList.add('show')}
+function ventAction(){if(!playerAlive){showToast('Hayaletler vent kullanamaz.');return}if(!canUseVent()){showToast('Ventleri Sahtekâr veya Mühendis kullanabilir.');return}if(inVent||nearestVent()>=0)openVentMenu();else showToast('Bir vent girişine yaklaşmalısın.')}
+function openTrackerMenu(){if(playerRole!=='tracker'||!running||meeting||gameEnded||!playerAlive)return;if(trackCooldown>0){showToast('Takip bekleme süresi: '+Math.ceil(trackCooldown)+' sn');return}const card=document.getElementById('modalCard');card.innerHTML='<h2>📡 Takipçi cihazı</h2><p>12 saniye boyunca izlemek istediğin oyuncuyu seç. Harita diğer oyuncuları göstermeyecek; yalnızca bu takip oku hedefini gösterecek.</p><div class="choiceGrid" id="trackChoices"></div><div class="modalActions"><button class="secondary" id="cancelTrack" type="button">İPTAL</button></div>';const list=document.getElementById('trackChoices');bots.filter(b=>b.alive).forEach(b=>{const bt=document.createElement('button');bt.type='button';bt.className='choice';bt.textContent='📍 '+b.name;bt.onclick=()=>{trackTargetId=b.id;trackRemaining=12;trackCooldown=28;document.getElementById('modal').classList.remove('show');showToast(b.name+' takip ediliyor · 12 saniye');updateButtons()};list.appendChild(bt)});document.getElementById('cancelTrack').onclick=()=>document.getElementById('modal').classList.remove('show');document.getElementById('modal').classList.add('show')}
+function drawTrackerIndicator(cam){if(playerRole!=='tracker'||trackRemaining<=0||trackTargetId===null)return;const target=bots.find(b=>b.id===trackTargetId&&b.alive);if(!target)return;const x=target.x-cam.x,y=target.y-cam.y;ctx.save();if(x>24&&x<VIEW_W-24&&y>24&&y<VIEW_H-24){ctx.strokeStyle='#ffdc67';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,29,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#ffec9c';ctx.font='900 14px system-ui';ctx.textAlign='center';ctx.fillText('TAKİP: '+target.name,x,y-38)}else{const a=Math.atan2(y-VIEW_H/2,x-VIEW_W/2),cx=VIEW_W/2+Math.cos(a)*Math.min(VIEW_W*.42,Math.abs((VIEW_W*.42)/Math.cos(a))),cy=VIEW_H/2+Math.sin(a)*Math.min(VIEW_H*.40,Math.abs((VIEW_H*.40)/Math.sin(a)));ctx.translate(cx,cy);ctx.rotate(a);ctx.fillStyle='#ffdc67';ctx.beginPath();ctx.moveTo(17,0);ctx.lineTo(-11,-10);ctx.lineTo(-7,0);ctx.lineTo(-11,10);ctx.closePath();ctx.fill();ctx.rotate(-a);ctx.fillStyle='#fff1b8';ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.fillText(target.name,0,24)}ctx.restore()}
+
+function interact(){
+ if(!running||meeting||gameEnded)return;
+ if(playerImpostor){showToast('Sahtekâr görev yapamaz.');return}
+ const t=nearestTask();if(!t){showToast('Görev terminaline yaklaşmalısın.');return}
+ const card=document.getElementById('modalCard');let steps=0,selected={},sequence=[2,4,1,3],seqIndex=0;
+ const intro='<h2>🛠️ '+t.name+'</h2><p>'+t.room+' bölümündeki görevi tamamla.</p><div id="taskMini"></div><div class="smallnote" id="taskProgress">İşlem bekleniyor.</div><div class="modalActions"><button class="secondary" id="cancelTask" type="button">İPTAL</button></div>';
+ card.innerHTML=intro;document.getElementById('modal').classList.add('show');
+ const mini=document.getElementById('taskMini'),progress=document.getElementById('taskProgress');
+ function finish(){t.done=true;completed++;document.getElementById('taskText').textContent=completed+' / '+playerTasks.length;document.getElementById('taskFill').style.width=(completed/playerTasks.length*100)+'%';renderTaskLocations();document.getElementById('modal').classList.remove('show');setSpeech(player,t.name+' tamam!');addChat('Sen',t.name+' görevini tamamladım.');showToast('Görev tamamlandı!');updateButtons();if(completed===playerTasks.length&&!bots.some(b=>b.alive&&b.impostor))endGame(true,'Bütün görevleri tamamladın. Mürettebat kazandı!')}
+ function button(label,fn,cls='choice'){const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=label;b.onclick=fn;mini.appendChild(b);return b}
+ function setProgress(msg){progress.textContent=msg}
+ document.getElementById('cancelTask').onclick=()=>document.getElementById('modal').classList.remove('show');
+ if(t.type==='wires'){
+  mini.innerHTML='<p>Soldaki kabloyu, sağdaki aynı renge bağla.</p><div id="wireRows" class="choiceGrid"></div>';
+  const rows=document.getElementById('wireRows'),colors=[['🔴','Kırmızı'],['🔵','Mavi'],['🟡','Sarı'],['🟢','Yeşil']],order=shuffle([0,1,2,3]);let chosenWire=null,done=[];
+  const leftCol=document.createElement('div'),rightCol=document.createElement('div');leftCol.style.display=rightCol.style.display='grid';leftCol.style.gap=rightCol.style.gap='7px';rows.append(leftCol,rightCol);
+  colors.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=c[0]+' '+c[1];b.onclick=()=>{chosenWire=i;setProgress(c[1]+' kablosu seçildi. Sağdan eşini seç.')};leftCol.appendChild(b)});
+  order.forEach((idx)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent='○ '+colors[idx][1];b.onclick=()=>{if(chosenWire===null){setProgress('Önce soldan bir kablo seç.');return}if(chosenWire===idx&&!done.includes(idx)){done.push(idx);b.disabled=true;b.textContent='✓ '+colors[idx][1];setProgress(done.length+'/4 kablo bağlandı.');if(done.length===4)finish()}else{setProgress('Renkler eşleşmedi. Tekrar dene.')}chosenWire=null};rightCol.appendChild(b)});
+ }else if(t.type==='card'){
+  mini.innerHTML='<p>Kartı okuyucuya yavaşça kaydır. Dört adımda tamamla.</p><div class="taskbar" style="height:14px"><i id="cardFill"></i></div>';
+  button('💳 KARTI KAYDIR',()=>{steps++;document.getElementById('cardFill').style.width=(steps/4*100)+'%';setProgress('Kart okuma: '+steps+'/4');if(steps>=4)finish()});
+ }else if(t.type==='download'||t.type==='upload'){
+  mini.innerHTML='<p>Terminali başlat. Veri aktarımı tamamlanana kadar işlemi sürdür.</p><div class="taskbar" style="height:14px"><i id="downloadFill"></i></div>';
+  button(t.type==='upload'?'⬆ VERİYİ YÜKLE':'⬇ VERİYİ İNDİR',()=>{steps++;document.getElementById('downloadFill').style.width=(steps/5*100)+'%';setProgress('Veri aktarımı: '+(steps*20)+'%');if(steps>=5)finish()});
+ }else if(t.type==='scan'){
+  mini.innerHTML='<p>Tarayıcıya gir ve sağlık taramasını başlat.</p><div class="taskbar" style="height:14px"><i id="scanFill"></i></div>';
+  button('🩺 TARAMAYI BAŞLAT',()=>{steps++;document.getElementById('scanFill').style.width=(steps/3*100)+'%';setProgress('Tarama: '+steps+'/3');if(steps>=3)finish()});
+ }else if(t.type==='fuel'){
+  mini.innerHTML='<p>Yakıt kabını motora doldur. Pompayı dört kez çalıştır.</p><div class="taskbar" style="height:14px"><i id="fuelFill"></i></div>';
+  button('⛽ YAKIT DOLDUR',()=>{steps++;document.getElementById('fuelFill').style.width=(steps/4*100)+'%';setProgress('Yakıt: '+(steps*25)+'%');if(steps>=4)finish()});
+ }else if(t.type==='asteroids'){
+  mini.innerHTML='<p>Ekrandaki 6 asteroidi seçerek temizle.</p><div class="choiceGrid" id="rocks"></div>';
+  const rocks=document.getElementById('rocks');for(let i=0;i<6;i++){const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=['☄️','🪨','✦','☄','◈','✧'][i];b.onclick=()=>{if(b.disabled)return;b.disabled=true;b.textContent='✓';steps++;setProgress(steps+'/6 asteroit temizlendi.');if(steps===6)finish()};rocks.appendChild(b)}
+ }else if(t.type==='reactor'){
+  mini.innerHTML='<p>Reaktörün gösterdiği sırayı aynı sırayla tuşla: 2 → 4 → 1 → 3.</p>';
+  const row=document.createElement('div');row.className='choiceGrid';mini.appendChild(row);for(let i=1;i<=4;i++){const b=document.createElement('button');b.type='button';b.className='choice';b.textContent='REAKTÖR '+i;b.onclick=()=>{if(i===sequence[seqIndex]){seqIndex++;setProgress('Doğru sıra: '+seqIndex+'/4');if(seqIndex===4)finish()}else{seqIndex=0;setProgress('Yanlış sıra! Baştan dene.')}};row.appendChild(b)}
+ }else if(t.type==='filter'){
+  mini.innerHTML='<p>Filtredeki 5 parçayı temizle.</p><div class="choiceGrid" id="filterGrid"></div>';
+  const fg=document.getElementById('filterGrid');for(let i=0;i<5;i++){const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=['🍃','🪶','🌿','🍂','✦'][i];b.onclick=()=>{b.disabled=true;b.textContent='✓';steps++;setProgress('Filtre temizliği: '+steps+'/5');if(steps===5)finish()};fg.appendChild(b)}
+ }else if(t.type==='sort'){
+  mini.innerHTML='<p>Kasaları küçükten büyüğe sırala: 1, 2, 3, 4.</p><div class="choiceGrid" id="sortGrid"></div>';
+  const sg=document.getElementById('sortGrid'),order=shuffle([1,2,3,4]);order.forEach(n=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent='📦 KASA '+n;b.onclick=()=>{if(n===steps+1){steps++;b.disabled=true;b.textContent='✓ KASA '+n;setProgress('Sıralama: '+steps+'/4');if(steps===4)finish()}else setProgress('Sıradaki kasa '+(steps+1)+' olmalı.');};sg.appendChild(b)})
+ }else if(t.type==='switch'){
+  mini.innerHTML='<p>Dört sistemi aç. Tüm anahtarlar yeşil olmalı.</p><div class="choiceGrid" id="switchGrid"></div>';
+  const sg=document.getElementById('switchGrid');for(let i=1;i<=4;i++){const b=document.createElement('button');b.type='button';b.className='choice';b.textContent='⏻ SİSTEM '+i;b.onclick=()=>{if(!b.dataset.on){b.dataset.on='1';b.style.borderColor='#6ee7ae';b.textContent='🟢 SİSTEM '+i;steps++;setProgress('Etkin: '+steps+'/4');if(steps===4)finish()}};sg.appendChild(b)}
+ }else if(t.type==='cameras'){
+  mini.innerHTML='<p>Kameraları sırayla kontrol et. Dört kameranın görüntüsünü doğrula.</p>';
+  button('📹 KAMERA TARAMASINI BAŞLAT',()=>{steps++;setProgress('Kamera '+steps+'/4 kontrol edildi.');if(steps===4)finish()});
+ }
+}
+
+function reportBody(){if(!running||meeting||gameEnded)return;if(!playerAlive){showToast('Hayaletler ceset raporlayamaz.');return}const b=nearestBody();if(!b){showToast('Raporlamak için bir cesede yaklaş.');return}b.reported=true;b.reportedBy=player.name;addChat('Sistem','🚨 '+b.name+' bulundu. Toplantı başladı!');openMeeting('Ceset raporlandı: '+b.name)}
+function emergencyMeeting(){if(!running||meeting||gameEnded||!playerAlive)return;if(emergencyUsed){showToast('Acil toplantı hakkını bu maçta kullandın.');return}emergencyUsed=true;document.getElementById('emergencyBtn').disabled=true;document.getElementById('emergencyBtn').textContent='🚨 TOPLANTI KULLANILDI';addChat(player.name,'Acil toplantı çağırıyorum!');openMeeting('Acil toplantı çağrıldı.')}
+function openMeeting(reason){
+ meeting=true;meetingReason=reason;const alive=bots.filter(b=>b.alive);const card=document.getElementById('modalCard');
+ card.innerHTML='<h2>🚨 Acil toplantı</h2><p>'+escapeHTML(reason)+'</p><p>Şüphelendiğin oyuncuya oy ver veya atla. Botların her biri oy kullanacak; en çok oyu alan gönderilecek, eşitlikte kimse gönderilmeyecek.</p><div class="meetingChat"><div class="meetingChatTitle">💬 Toplantı Sohbeti · Yalnızca toplantıda yazılabilir</div><div class="meetingChatFeed" id="meetingChatFeed" aria-live="polite"></div><form class="meetingChatForm" id="meetingChatForm" autocomplete="off" style="'+(playerAlive?'':'display:none')+'"><input id="meetingChatInput" maxlength="110" placeholder="Şüphelini veya gördüğünü yaz..." aria-label="Toplantı mesajı"><button type="submit">GÖNDER</button></form></div><div class="meetingHint">Botlar toplantıda konuşur ve kendi oylarını verir.</div><div class="choiceGrid" id="voteChoices"></div><div class="smallnote" id="meetingTalk">Oyunu seç...</div><div class="modalActions"><button type="button" class="bigbtn" id="voteBtn" disabled>OY VER</button><button type="button" class="secondary" id="skipBtn">ATLA</button></div>';
+ const feed=document.getElementById('meetingChatFeed');
+ addMeetingChat('Sistem',reason,true);
+ const reporterMatch=reason.match(/^([^ ]+)/);const reporter=reporterMatch?reporterMatch[1]:'';
+ for(const b of alive){
+  let line;
+  if(b.influencerCue&&b.influencerCue.expires>elapsed){line='Bana gizemli bir görsel gönderildi: '+b.influencerCue.emoji+'. Ne anlama geldiğini çözmeye çalışıyorum.';b.influencerCue=null;}
+  else if(reason.includes(b.name)&&reason.toLocaleLowerCase('tr-TR').includes('rapor')) line='Cesedi ben buldum. Toplantıyı bu yüzden başlattım.';
+  else if((b.suspicion.player||0)>=1.5) line=player.name+' yakınlarında şüpheli bir hareket gördüm. Bence dikkat etmeliyiz.';
+  else if(Math.random()<.28) line='Ben az önce bir görev yapıyordum. Kesin konuşmak için daha fazla bilgi lazım.';
+  else {const c=cellOf(b.x,b.y),r=roomGrid[c.y]?.[c.x]??-1;line='Ben '+(r>=0?roomDefs[r].name:'koridor')+' tarafındaydım. Bir şey gören var mı?';}
+  addMeetingChat(b.name,line);setSpeech(b,line);
+ }
+ let vote=null;const list=document.getElementById('voteChoices');
+ if(playerAlive){const p=document.createElement('button');p.type='button';p.className='choice';p.textContent='🧑‍🚀 '+player.name+' (Sen)';p.disabled=true;p.title='Kendine oy veremezsin';list.appendChild(p)}
+ alive.forEach(b=>{const bt=document.createElement('button');bt.type='button';bt.className='choice';bt.textContent='🧑‍🚀 '+b.name;bt.onclick=()=>{vote=b.id;document.querySelectorAll('#voteChoices .choice').forEach(x=>x.classList.remove('selected'));bt.classList.add('selected');document.getElementById('voteBtn').disabled=false};list.appendChild(bt)});
+ document.getElementById('meetingTalk').textContent='Botların oyları sen oylamayı bitirdiğinde açıklanacak.';
+ document.getElementById('meetingChatForm').addEventListener('submit',sendMeetingChat);
+ document.getElementById('voteBtn').onclick=()=>resolveVote(vote);document.getElementById('skipBtn').onclick=()=>resolveVote('skip');
+ document.getElementById('modal').classList.add('show');requestAnimationFrame(()=>document.getElementById('meetingChatInput')?.focus());updateButtons();
+}
+function escapeHTML(s){return String(s).replace(/[&<>\"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));}
+function chooseAIVote(bot){
+ const candidates=bots.filter(x=>x.alive&&x.id!==bot.id).map(x=>({key:x.id,name:x.name,score:(bot.suspicion[String(x.id)]||0)}));
+ if(playerAlive)candidates.push({key:'player',name:player.name,score:bot.suspicion.player||0});
+ candidates.sort((a,b)=>b.score-a.score);
+ const top=candidates[0];
+ if(!top||Math.random()<.18)return 'skip';
+ if(top.score>1.5&&Math.random()<.82)return top.key;
+ if(top.score>.4&&Math.random()<.48)return top.key;
+ if(Math.random()<.38)return 'skip';
+ return candidates[Math.floor(Math.random()*candidates.length)].key;
+}
+function resolveVote(playerChoice){
+ const ballots=[];if(playerAlive)ballots.push({voter:player.name,target:playerChoice||'skip'});
+ for(const b of bots.filter(x=>x.alive)){const choice=chooseAIVote(b);ballots.push({voter:b.name,target:choice});}
+ const tally={};for(const v of ballots){const k=String(v.target);tally[k]=(tally[k]||0)+1;}
+ const max=Math.max(0,...Object.values(tally)),winners=Object.keys(tally).filter(k=>tally[k]===max);
+ const box=document.getElementById('modalCard');let result='<h2>🗳️ Oylama Sonucu</h2><p>Botların oyları da sayıldı:</p><div class="smallnote" style="line-height:1.8">';
+ for(const v of ballots){const name=v.target==='skip'?'Atla':v.target==='player'?player.name:(bots.find(b=>String(b.id)===String(v.target))?.name||'Atla');result+='<div>'+v.voter+' → '+name+'</div>'}
+ result+='</div><div class="smallnote"><b>Oy sayıları:</b> ';result+=Object.entries(tally).map(([k,v])=>(k==='skip'?'Atla':k==='player'?player.name:(bots.find(b=>String(b.id)===k)?.name||'Bilinmiyor'))+': '+v).join(' · ');result+='</div><div id="voteOutcome" class="smallnote"></div><div class="modalActions"><button class="bigbtn" id="continueVote" type="button">DEVAM ET</button></div>';
+ box.innerHTML=result;let ejected=null;
+ if(winners.length===1&&winners[0]!=='skip'){const key=winners[0];if(key==='player'){ejected='player';document.getElementById('voteOutcome').textContent=player.name+' oylamayla gönderildi.'}else{ejected=bots.find(b=>String(b.id)===key&&b.alive);if(ejected){ejected.alive=false;ejected.path=[];document.getElementById('voteOutcome').textContent=ejected.name+' oylamayla gönderildi. Rolü: '+(ejected.impostor?'SAHTEKÂR':'MÜRETTEBAT');}}
+ }else document.getElementById('voteOutcome').textContent='Oylar eşit veya çoğunluk yok. Kimse gönderilmedi.';
+ document.getElementById('continueVote').onclick=()=>{
+  document.getElementById('modal').classList.remove('show');meeting=false;bots.forEach(b=>{b.speech='';b.speechUntil=0});player.speech='';player.speechUntil=0;
+  if(ejected==='player'){if(playerImpostor){playerAlive=false;endGame(false,'Sahtekâr olduğun ortaya çıktı.');return}else{becomeGhost('Toplantıda gönderildin.');}}
+  if(ejected&&ejected.impostor&&!playerImpostor){endGame(true,ejected.name+' sahtekârdı! Mürettebat kazandı.');return}
+  if(playerImpostor)checkImpostorWin();else if(!bots.some(x=>x.alive&&x.impostor)){endGame(true,'Sahtekâr kalmadı. Mürettebat kazandı!');return}
+  showToast(ejected?ejected.name+' gönderildi.':'Kimse gönderilmedi.');checkCrewWin();updateButtons();
+ };
+}
+
+function checkImpostorWin(){if(!playerImpostor)return;const aliveCrew=bots.filter(b=>b.alive&&!b.impostor).length;if(aliveCrew<=1)endGame(true,'Sahtekâr olarak mürettebatı eledin!')}
+function endGame(win,msg){gameEnded=true;running=false;const card=document.getElementById('modalCard');card.innerHTML='<div class="endTitle">'+(win?'🏆 ZAFER!':'💫 OYUN BİTTİ')+'</div><p>'+msg+'</p><div class="modalActions"><button class="bigbtn" id="again" type="button">TEKRAR OYNA</button><button class="secondary" id="home" type="button">ANA MENÜ</button></div>';document.getElementById('modal').classList.add('show');document.getElementById('again').onclick=()=>{resetGame();running=true;last=performance.now();requestAnimationFrame(loop)};document.getElementById('home').onclick=returnToMenu}
+function triggerNoisemakerAlert(x,y,name){noisemakerAlert={x,y,remaining:12,name};if(!playerImpostor){showToast('📢 GÜRÜLTÜCÜ SİNYALİ! '+name+' için konum işareti belirdi.')} }
+function becomeGhost(reason){if(!playerAlive)return;playerAlive=false;inVent=false;ventIndex=-1;clickPath=[];ghostRole=Math.random()<.5?'guardian':'influencer';ghostProtectCooldown=0;protectionRemaining=0;protectedTargetId=null;ghostImageCharges=ghostRole==='influencer'?3:0;influencerImages=shuffle(['📍','👁️','🌀','🛡️','🚨','🔍','⭐','👣','❗']).slice(0,3);document.getElementById('roleLabel').textContent='• '+ghostRoleName();document.getElementById('objective').textContent=ghostRole==='guardian'?'🪽 Hayaletsin. Yaşayan bir mürettebat üyesini koru.':'📸 Hayaletsin. Yaşayan mürettebata en fazla 3 görsel ipucu gönder.';showToast(reason+' Hayalet rolün: '+ghostRoleName());updateButtons();}
+function openGuardianMenu(){if(playerAlive||ghostRole!=='guardian'||meeting||gameEnded)return;if(ghostProtectCooldown>0){showToast('Koruma bekleme süresi: '+Math.ceil(ghostProtectCooldown)+' sn');return}const card=document.getElementById('modalCard');card.innerHTML='<h2>🪽 Koruyucu Melek</h2><p>Bir yaşayan mürettebat üyesini seç. Kısa süreli kalkanı, yaklaşan bir saldırıyı bir kez engeller.</p><div class="choiceGrid" id="guardianChoices"></div><div class="modalActions"><button class="secondary" id="cancelGuardian" type="button">İPTAL</button></div>';const list=document.getElementById('guardianChoices');bots.filter(b=>b.alive&&!b.impostor).forEach(b=>{const bt=document.createElement('button');bt.type='button';bt.className='choice';bt.textContent='🛡️ '+b.name;bt.onclick=()=>{b.protectedUntil=elapsed+18;b.protectionAvailable=true;protectedTargetId=b.id;ghostProtectCooldown=45;document.getElementById('modal').classList.remove('show');showToast(b.name+' 18 saniyeliğine korundu.');updateButtons()};list.appendChild(bt)});document.getElementById('cancelGuardian').onclick=()=>document.getElementById('modal').classList.remove('show');document.getElementById('modal').classList.add('show')}
+function openInfluencerMenu(){if(playerAlive||ghostRole!=='influencer'||meeting||gameEnded)return;if(ghostImageCharges<=0){showToast('Görsel gönderme hakkın kalmadı.');return}const card=document.getElementById('modalCard');const cards=influencerImages.slice(0,Math.min(3,influencerImages.length));card.innerHTML='<h2>📸 Influencer · Görsel mesaj</h2><p>Bir yaşayan mürettebat üyesine gizemli bir görsel gönder. Toplam 3 hakkın var.</p><div class="choiceGrid" id="influencerTargets"></div><div class="smallnote" id="influencerChosen">Önce görselini seç.</div><div class="choiceGrid" id="influencerImages"></div><div class="modalActions"><button class="secondary" id="cancelInfluencer" type="button">İPTAL</button></div>';let chosenImage=null;const imgs=document.getElementById('influencerImages');cards.forEach((emoji,i)=>{const bt=document.createElement('button');bt.type='button';bt.className='choice photoCard';bt.style.fontSize='28px';bt.innerHTML='<div style="font-size:34px;padding:8px">'+emoji+'</div><small>GÖRSEL '+(i+1)+'</small>';bt.onclick=()=>{chosenImage=emoji;document.querySelectorAll('#influencerImages .choice').forEach(x=>x.classList.remove('selected'));bt.classList.add('selected');document.getElementById('influencerChosen').textContent='Seçilen görsel: '+emoji+' · Şimdi alıcıyı seç.'};imgs.appendChild(bt)});const list=document.getElementById('influencerTargets');bots.filter(b=>b.alive&&!b.impostor).forEach(b=>{const bt=document.createElement('button');bt.type='button';bt.className='choice';bt.textContent='📨 '+b.name;bt.onclick=()=>{if(!chosenImage){showToast('Önce bir görsel seç.');return}sendInfluenceImage(b,chosenImage)};list.appendChild(bt)});document.getElementById('cancelInfluencer').onclick=()=>document.getElementById('modal').classList.remove('show');document.getElementById('modal').classList.add('show')}
+function sendInfluenceImage(target,emoji){target.influencerCue={emoji,expires:elapsed+60};const likelySuspect=bots.find(b=>b.alive&&b.impostor);if(likelySuspect)target.suspicion[String(likelySuspect.id)]=(target.suspicion[String(likelySuspect.id)]||0)+(emoji==='🔪'||emoji==='👁️'?0.85:0.35);ghostImageCharges--;influencerImages=influencerImages.filter(x=>x!==emoji);document.getElementById('modal').classList.remove('show');setSpeech(target,'Gizemli görsel: '+emoji);showToast(emoji+' görseli '+target.name+' adlı oyuncuya gönderildi.');updateButtons()}
+function drawNoisemakerAlert(cam){if(!noisemakerAlert||noisemakerAlert.remaining<=0||playerImpostor)return;let x=noisemakerAlert.x-cam.x,y=noisemakerAlert.y-cam.y;const off=x<34||x>VIEW_W-34||y<34||y>VIEW_H-34;if(off){const a=Math.atan2(y-VIEW_H/2,x-VIEW_W/2),rx=(VIEW_W/2-38)/Math.max(.01,Math.abs(Math.cos(a))),ry=(VIEW_H/2-38)/Math.max(.01,Math.abs(Math.sin(a))),r=Math.min(rx,ry);x=VIEW_W/2+Math.cos(a)*r;y=VIEW_H/2+Math.sin(a)*r;ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.fillStyle='#ff566a';ctx.beginPath();ctx.moveTo(17,0);ctx.lineTo(-12,-11);ctx.lineTo(-8,0);ctx.lineTo(-12,11);ctx.closePath();ctx.fill();ctx.restore()}ctx.save();const pulse=1+Math.sin(performance.now()/130)*.18;ctx.translate(x,y);ctx.scale(pulse,pulse);ctx.strokeStyle='#ff566a';ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#ff6576';ctx.font='900 24px system-ui';ctx.textAlign='center';ctx.fillText('📢',0,-38);ctx.restore();}
+function checkCrewWin(){if(playerImpostor)return;const aliveImpostors=bots.filter(b=>b.alive&&b.impostor).length;const aliveCrew=bots.filter(b=>b.alive&&!b.impostor).length+(playerAlive?1:0);if(aliveImpostors===0){endGame(true,'Bütün sahtekârlar gönderildi. Mürettebat kazandı!');return}if(aliveCrew<=aliveImpostors){endGame(false,'Sahtekârlar sayıca üstün oldu. Oyun bitti.')}}
+
+function chooseBotTask(b){const opts=taskDefs.filter(t=>t.name!==b.lastTask);const t=opts[Math.floor(Math.random()*opts.length)];b.lastTask=t.name;b.currentTask=t;b.workTime=0;b.taskGoal={x:t.x*CELL+CELL/2,y:t.y*CELL+CELL/2};setPath(b,b.taskGoal)}
+function setSpeech(e,msg){e.speech=msg;e.speechUntil=performance.now()+2600}
+function updateBotStuck(b,dt){
+ if(Math.hypot(b.x-b.lastX,b.y-b.lastY)<.1)b.stuckTime=(b.stuckTime||0)+dt;else b.stuckTime=0;
+ b.lastX=b.x;b.lastY=b.y;
+ if(b.stuckTime>2){if(b.goal)setPath(b,b.goal);else if(!b.impostor)chooseBotTask(b);b.stuckTime=0}
+}
+function updateBots(dt){
+ for(const b of bots){
+  if(!b.alive)continue;
+  // Mürettebat botları yakındaki, henüz raporlanmamış cesetleri arar ve raporlar.
+  if(!b.impostor){
+   const corpse=nearestBodyForBot(b,245);
+   if(corpse){
+    b.reportTarget=corpse;
+    if(dist(b,corpse)<=52){
+     corpse.reported=true;corpse.reportedBy=b.name;
+     addChat('Sistem','🚨 '+b.name+' bir ceset buldu ve raporladı.');
+     openMeeting(b.name+' cesedi buldu ve raporladı: '+corpse.name);
+     return;
+    }
+    if(!b.path.length||!b.goal||Math.hypot(b.goal.x-corpse.x,b.goal.y-corpse.y)>12)setPath(b,corpse);
+    followPath(b,dt,1.78);updateBotStuck(b,dt);continue;
+   }else b.reportTarget=null;
+  }
+  b.killTimer-=dt;
+  if(b.impostor){
+   const botTarget=bots.filter(x=>x.alive&&!x.impostor&&x.id!==b.id).sort((a,c)=>dist(b,a)-dist(b,c))[0]||null;
+   const target=playerAlive&&!inVent&&!playerImpostor?player:botTarget;
+   if(target&&dist(b,target)<235){if(!b.huntTarget||b.huntTarget!==target){b.huntTarget=target;setPath(b,target)}followPath(b,dt,1.82);if(dist(b,target)<40&&b.killTimer<=0){
+    if(target===player){lastKillerName=b.name;bodies.push({x:player.x,y:player.y,name:player.name,reported:false});if(playerRole==='noisemaker')triggerNoisemakerAlert(player.x,player.y,player.name);becomeGhost('Bir sahtekâr seni yakaladı.');b.killTimer=18;checkCrewWin();return}
+    if(target.protectionAvailable&&target.protectedUntil>elapsed){target.protectionAvailable=false;target.protectedUntil=0;b.killTimer=18;setSpeech(target,'Bir kalkan beni korudu!');showToast('🛡️ Koruyucu Melek saldırıyı engelledi!')}
+    else{target.alive=false;target.path=[];bodies.push({x:target.x,y:target.y,name:target.name,reported:false});if(target.role==='noisemaker')triggerNoisemakerAlert(target.x,target.y,target.name);b.killTimer=18;checkCrewWin()}
+   }}else{b.huntTarget=null;if(!b.currentTask)chooseBotTask(b);if(dist(b,b.taskGoal)<26){b.workTime-=dt;if(b.workTime<=0)chooseBotTask(b)}else{if(!b.path.length)setPath(b,b.taskGoal);followPath(b,dt,1.55)}}
+  }else{if(b.influencerCue&&b.influencerCue.expires>elapsed&&Math.random()<.002){setSpeech(b,'Bana tuhaf bir görsel geldi: '+b.influencerCue.emoji)}
+
+   if(!b.currentTask)chooseBotTask(b);
+   if(dist(b,b.taskGoal)<27){b.workTime-=dt;if(b.workTime<=0)chooseBotTask(b)}
+   else{if(!b.path.length)setPath(b,b.taskGoal);followPath(b,dt,1.62)}
+  }
+  updateBotStuck(b,dt);
+ }
+}
+function update(dt){if(!running||meeting||gameEnded)return;elapsed+=dt;const remaining=Math.max(0,gameTime-elapsed);document.getElementById('timer').textContent=String(Math.floor(remaining/60)).padStart(2,'0')+':'+String(Math.floor(remaining%60)).padStart(2,'0');if(remaining<=0){endGame(false,'Süre doldu.');return}let dx=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0),dy=(keys.arrowdown||keys.s?1:0)-(keys.arrowup||keys.w?1:0);if((dx||dy)&&!inVent){clickPath=[];const m=Math.hypot(dx,dy),mx=dx/m*player.speed*dt*60,my=dy/m*player.speed*dt*60;if(playerAlive)moveEntity(player,mx,my);else{player.x=Math.max(18,Math.min(WORLD_W-18,player.x+mx));player.y=Math.max(18,Math.min(WORLD_H-18,player.y+my))}}else if(clickPath.length&&!inVent){const p=clickPath[0],d=dist(player,p);if(d<8)clickPath.shift();else{const mx=(p.x-player.x)/d*player.speed*dt*60,my=(p.y-player.y)/d*player.speed*dt*60;if(playerAlive)moveEntity(player,mx,my);else{player.x=Math.max(18,Math.min(WORLD_W-18,player.x+mx));player.y=Math.max(18,Math.min(WORLD_H-18,player.y+my))}}}killCooldown=Math.max(0,killCooldown-dt);trackCooldown=Math.max(0,trackCooldown-dt);ghostProtectCooldown=Math.max(0,ghostProtectCooldown-dt);if(protectionRemaining>0)protectionRemaining=Math.max(0,protectionRemaining-dt);if(noisemakerAlert&&noisemakerAlert.remaining>0)noisemakerAlert.remaining=Math.max(0,noisemakerAlert.remaining-dt);if(trackRemaining>0){trackRemaining=Math.max(0,trackRemaining-dt);if(trackRemaining===0)trackTargetId=null}updateBots(dt);const c=cellOf(player.x,player.y),r=roomGrid[c.y]?.[c.x]??-1;document.getElementById('roomLabel').textContent='📍 '+(r>=0?roomDefs[r].name:'Koridor');updateButtons()}
+function rr(c,x,y,w,h,r,fill,stroke='#18283a',lw=2){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw;c.stroke()}}
+function drawFixture(x,y,w,h,type){const X=x*CELL,Y=y*CELL,W=w*CELL,H=h*CELL;ctx.save();if(type==='table'){rr(ctx,X,Y,W,H,Math.min(W,H)/2,'#4f82a0','#20394c',4);rr(ctx,X+8,Y+7,W-16,H-14,Math.min(W,H)/2,'#78a8bd','#d1e3e7',2);ctx.fillStyle='#ecf5ee';ctx.beginPath();ctx.arc(X+W/2,Y+H/2,5,0,Math.PI*2);ctx.fill()}else if(type==='bed'){rr(ctx,X,Y,W,H,7,'#d5e1e0','#24394b',3);rr(ctx,X+5,Y+5,W-10,H-10,5,'#779ba8','#d2e8ed',1);rr(ctx,X+8,Y+7,18,H-14,4,'#e7ece5',null)}else if(type==='engine'||type==='reactor'){rr(ctx,X,Y,W,H,9,'#485b68','#182b3c',4);ctx.strokeStyle='#61d6e6';ctx.lineWidth=5;ctx.beginPath();ctx.arc(X+W/2,Y+H/2,Math.min(W,H)*.28,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#f5c85f';ctx.beginPath();ctx.arc(X+W/2,Y+H/2,7,0,Math.PI*2);ctx.fill()}else if(type==='weapon'){rr(ctx,X,Y,W,H,5,'#364e63','#182b3b',3);for(let i=0;i<3;i++){ctx.fillStyle='#b8c9cb';ctx.fillRect(X+8+i*18,Y+8,8,H-16)}}else if(type==='screen'||type==='nav'||type==='admin'||type==='oxygen'||type==='radio'||type==='shield'){rr(ctx,X,Y,W,H,6,'#263c50','#101e30',3);rr(ctx,X+6,Y+6,W-12,H-12,4,type==='oxygen'?'#c5ded4':'#3a9baf','#8cbbc0',2);ctx.fillStyle='#d7f3e7';ctx.fillRect(X+W*.35,Y+H*.3,W*.25,5)}else if(type==='crate'){rr(ctx,X,Y,W,H,4,'#9b8666','#403b36',3);ctx.strokeStyle='#d0bc91';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(X+5,Y+5);ctx.lineTo(X+W-5,Y+H-5);ctx.moveTo(X+W-5,Y+5);ctx.lineTo(X+5,Y+H-5);ctx.stroke()}else if(type==='wire'){rr(ctx,X,Y,W,H,5,'#334351','#101b29',3);ctx.strokeStyle='#f0be4c';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(X+5,Y+H/2);ctx.lineTo(X+W-5,Y+H/2);ctx.stroke()}ctx.restore()}
+function drawBaseMap(){ctx.fillStyle='#172632';ctx.fillRect(0,0,WORLD_W,WORLD_H);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){if(!grid[y][x])continue;const X=x*CELL,Y=y*CELL,ri=roomGrid[y][x];ctx.fillStyle=ri>=0?roomDefs[ri].color:'#6e8290';ctx.fillRect(X,Y,CELL,CELL);ctx.fillStyle='#ffffff0d';ctx.fillRect(X+2,Y+2,CELL-4,CELL-4);ctx.strokeStyle='#283c4a55';ctx.lineWidth=1;ctx.strokeRect(X,Y,CELL,CELL);if(ri===4&&((x+y)%2===0)){ctx.fillStyle='#e4e3d41c';ctx.beginPath();ctx.moveTo(X+CELL/2,Y+4);ctx.lineTo(X+CELL-4,Y+CELL/2);ctx.lineTo(X+CELL/2,Y+CELL-4);ctx.lineTo(X+4,Y+CELL/2);ctx.closePath();ctx.fill()}}
+ for(const f of furniture)drawFixture(...f);
+ // wall edges around all walkable tiles
+ ctx.strokeStyle='#263946';ctx.lineWidth=6;ctx.lineCap='square';for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]){const X=x*CELL,Y=y*CELL;if(!grid[y-1]?.[x]){ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X+CELL,Y);ctx.stroke()}if(!grid[y+1]?.[x]){ctx.beginPath();ctx.moveTo(X,Y+CELL);ctx.lineTo(X+CELL,Y+CELL);ctx.stroke()}if(!grid[y]?.[x-1]){ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X,Y+CELL);ctx.stroke()}if(!grid[y]?.[x+1]){ctx.beginPath();ctx.moveTo(X+CELL,Y);ctx.lineTo(X+CELL,Y+CELL);ctx.stroke()}}
+ // inner wall trim / doors and room labels
+ ctx.textAlign='center';for(const r of roomDefs){const cx=(r.gx+r.gw/2)*CELL,ly=(r.gy+.65)*CELL;ctx.font='900 15px system-ui';ctx.lineWidth=4;ctx.strokeStyle='#17212be8';ctx.strokeText(r.name.toLocaleUpperCase('tr-TR'),cx,ly);ctx.fillStyle='#f4f2e6';ctx.fillText(r.name.toLocaleUpperCase('tr-TR'),cx,ly)}
+ // Cafeteria central emergency table
+ const tx=26*CELL,ty=7*CELL;ctx.save();ctx.fillStyle='#4b91b2';ctx.strokeStyle='#1d354b';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(tx,ty,43,28,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#c9e4e5';ctx.beginPath();ctx.arc(tx,ty,13,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawTaskAndVent(){for(const t of playerTasks){if(t.done)continue;ctx.save();ctx.translate(t.x,t.y);ctx.fillStyle='#dbb54d';ctx.strokeStyle='#fff0a1';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(-12,-12,24,24,5);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText('!',0,6);ctx.restore()}for(const v of vents){ctx.save();ctx.translate(v.x,v.y);ctx.fillStyle='#19232d';ctx.strokeStyle='#c9d2d1';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,0,15,10,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle='#879da5';ctx.lineWidth=2;for(let k=-2;k<=2;k++){ctx.beginPath();ctx.moveTo(k*5,-6);ctx.lineTo(k*5,6);ctx.stroke()}ctx.restore()}}
+function drawCharacter(e,isPlayer=false){ctx.save();ctx.translate(e.x,e.y);const color=isPlayer?(chosen==='rafa'?'#282d37':'#1262db'):e.color,dark='#0b1723';ctx.fillStyle='#02060c77';ctx.beginPath();ctx.ellipse(0,23,22,8,0,0,Math.PI*2);ctx.fill();rr(ctx,-24,-7,13,30,6,color,dark,3);rr(ctx,-16,12,14,15,6,color,dark,3);rr(ctx,3,12,14,15,6,color,dark,3);rr(ctx,-20,-25,40,48,15,color,dark,3);if(isPlayer&&chosen==='zeynep'){ctx.fillStyle='#101a3d';ctx.beginPath();ctx.moveTo(-19,-26);ctx.quadraticCurveTo(-28,-54,0,-50);ctx.quadraticCurveTo(27,-52,24,-24);ctx.lineTo(14,-16);ctx.lineTo(9,-31);ctx.lineTo(-2,-18);ctx.lineTo(-10,-31);ctx.lineTo(-20,-12);ctx.closePath();ctx.fill()}if(isPlayer&&chosen==='rafa'){ctx.fillStyle='#e6eaf0';ctx.beginPath();ctx.moveTo(-18,-26);ctx.quadraticCurveTo(-24,-53,-4,-50);ctx.quadraticCurveTo(15,-55,22,-31);ctx.lineTo(11,-28);ctx.lineTo(0,-37);ctx.lineTo(-10,-28);ctx.closePath();ctx.fill()}rr(ctx,-13,-18,30,18,9,'#82d8f2',dark,3);ctx.fillStyle='#ffffffb9';ctx.beginPath();ctx.ellipse(2,-13,6,3,-.3,0,Math.PI*2);ctx.fill();if(isPlayer&&chosen==='rafa')rr(ctx,-14,-14,33,7,3,'#090d14',null);ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#101a25';ctx.strokeText(isPlayer?player.name:e.name,0,-37);ctx.fillStyle='#fff';ctx.fillText(isPlayer?player.name:e.name,0,-37);if(e.speech&&performance.now()<e.speechUntil){const s=e.speech.slice(0,32);ctx.font='800 10px system-ui';const w=Math.min(145,ctx.measureText(s).width+14);rr(ctx,-w/2,-70,w,22,7,'#f2f5ef','#233747',1);ctx.fillStyle='#19283a';ctx.fillText(s,0,-55)}ctx.restore()}
+function drawBodies(){for(const b of bodies){ctx.save();ctx.translate(b.x,b.y);ctx.fillStyle='#dfe8e6';ctx.strokeStyle='#283949';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,0,20,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#f06a77';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('✕',0,5);ctx.restore()}}
+function camera(){return{x:Math.max(0,Math.min(WORLD_W-VIEW_W,player.x-VIEW_W/2)),y:Math.max(0,Math.min(WORLD_H-VIEW_H,player.y-VIEW_H/2))}}
+function draw(){ctx.clearRect(0,0,VIEW_W,VIEW_H);const cam=camera();ctx.save();ctx.translate(-cam.x,-cam.y);drawBaseMap();
+ // darken everything outside the player's actual vision circle
+ ctx.save();ctx.beginPath();ctx.rect(0,0,WORLD_W,WORLD_H);ctx.arc(player.x,player.y,playerImpostor?260:205,0,Math.PI*2,true);ctx.fillStyle='rgba(1,5,12,.83)';ctx.fill('evenodd');ctx.restore();
+ // only draw players, bodies, tasks and vents within the light circle
+ ctx.save();ctx.beginPath();ctx.arc(player.x,player.y,playerImpostor?260:205,0,Math.PI*2);ctx.clip();drawTaskAndVent();drawBodies();for(const b of bots)if(b.alive){drawCharacter(b);if(b.protectedUntil>elapsed){ctx.strokeStyle='#77dfff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(b.x,b.y,34,0,Math.PI*2);ctx.stroke()}}if(!inVent){if(playerAlive)drawCharacter(player,true);else{ctx.save();ctx.globalAlpha=.42;drawCharacter(player,true);ctx.restore()}}ctx.restore();
+ ctx.strokeStyle='#a8eaff90';ctx.lineWidth=2;ctx.beginPath();ctx.arc(player.x,player.y,playerImpostor?260:205,0,Math.PI*2);ctx.stroke();ctx.restore();drawTrackerIndicator(cam);drawNoisemakerAlert(cam);drawSelfMiniMap();
+ if(inVent){ctx.fillStyle='#e3f7ff';ctx.font='900 14px system-ui';ctx.textAlign='center';ctx.fillText('VENTTE SAKLANIYORSUN · V İLE HEDEF SEÇ',VIEW_W/2,VIEW_H-72)}
+}
+function openMap(){const card=document.getElementById('modalCard');card.innerHTML='<h2>🗺️ Gemi Haritası • Yalnızca sen</h2><canvas id="mapCanvas" class="mapCanvas" width="900" height="560"></canvas><div class="legend"><span><i class="dot" style="background:#60d9ff"></i> Sen</span><span>Diğer oyuncular haritada görünmez</span><span><i class="dot" style="background:#e8c14c"></i> Görevler</span><span>🌀 Vent</span></div><div class="modalActions"><button class="bigbtn" id="closeMap" type="button">KAPAT</button></div>';document.getElementById('modal').classList.add('show');drawOverview();document.getElementById('closeMap').onclick=()=>document.getElementById('modal').classList.remove('show')}
+function drawOverview(){const c=document.getElementById('mapCanvas');if(!c)return;const m=c.getContext('2d');const sx=c.width/WORLD_W,sy=c.height/WORLD_H;m.fillStyle='#172632';m.fillRect(0,0,c.width,c.height);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]){m.fillStyle=roomGrid[y][x]>=0?roomDefs[roomGrid[y][x]].color:'#718491';m.fillRect(x*CELL*sx,y*CELL*sy,CELL*sx-1,CELL*sy-1)}m.textAlign='center';m.font='bold 11px system-ui';roomDefs.forEach(r=>{m.fillStyle='#fff';m.fillText(r.name,(r.gx+r.gw/2)*CELL*sx,(r.gy+.7)*CELL*sy)});vents.forEach(v=>{m.fillStyle='#202a34';m.strokeStyle='#f1dfac';m.beginPath();m.ellipse(v.x*sx,v.y*sy,5,3,0,0,Math.PI*2);m.fill();m.stroke()});playerTasks.filter(t=>!t.done).forEach(t=>{m.fillStyle='#f2c84b';m.fillRect(t.x*sx-3,t.y*sy-3,6,6)});m.fillStyle='#50dcff';m.beginPath();m.arc(player.x*sx,player.y*sy,7,0,Math.PI*2);m.fill()}
+function renderTaskLocations(){const box=document.getElementById('taskLocationRows');if(!box)return;if(playerImpostor){box.textContent='Sahtekâr görev yapmaz.';return}box.innerHTML='';for(const t of playerTasks){const row=document.createElement('div');row.className='taskRow'+(t.done?' done':'');const mark=t.done?'✓':'•';row.innerHTML='<b>'+mark+' '+escapeHTML(t.room)+'</b><br>'+escapeHTML(t.name);box.appendChild(row)}}
+function drawMapBaseOn(m,w,h){const sx=w/WORLD_W,sy=h/WORLD_H;m.clearRect(0,0,w,h);m.fillStyle='#172632';m.fillRect(0,0,w,h);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]){m.fillStyle=roomGrid[y][x]>=0?roomDefs[roomGrid[y][x]].color:'#718491';m.fillRect(x*CELL*sx,y*CELL*sy,Math.max(1,CELL*sx-1),Math.max(1,CELL*sy-1))}}
+function drawSelfMiniMap(){const c=document.getElementById('selfMiniMap');if(!c||!player)return;const m=c.getContext('2d'),w=c.width,h=c.height;drawMapBaseOn(m,w,h);m.fillStyle='#55e0ff';m.strokeStyle='#f3ffff';m.lineWidth=2;m.beginPath();m.arc(player.x/WORLD_W*w,player.y/WORLD_H*h,6,0,Math.PI*2);m.fill();m.stroke();m.fillStyle='#e6f8ff';m.font='bold 10px system-ui';m.textAlign='left';m.fillText('SEN',8,h-8)}
+function loop(now){if(!running)return;const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw();if(running)requestAnimationFrame(loop)}
+function toggleChat(){showToast('Sohbet yalnızca toplantılarda açılır.');}
+function cleanChat(s){s=String(s).replace(/[<>]/g,'').slice(0,110);const bad=[/siktir/gi,/orospu/gi,/piç/gi,/amına/gi,/ananı/gi,/yarrak/gi,/şerefsiz/gi,/gerizekalı/gi,/salak/gi,/aptal/gi,/fuck/gi,/shit/gi,/bitch/gi];for(const r of bad)s=s.replace(r,'***');return s.trim()}
+function addChat(who,msg,system=false){const box=document.getElementById('chatMessages');if(!box)return;const div=document.createElement('div');div.className='chatMsg'+(system?' system':'');const b=document.createElement('b');b.textContent=who+': ';div.appendChild(b);div.appendChild(document.createTextNode(cleanChat(msg)));box.appendChild(div);while(box.children.length>70)box.removeChild(box.firstChild);box.scrollTop=box.scrollHeight}
+function addMeetingChat(who,msg,system=false){const box=document.getElementById('meetingChatFeed');if(!box||!meeting)return;const div=document.createElement('div');div.className='meetingChatLine'+(system?' system':'');const b=document.createElement('b');b.textContent=who+': ';div.appendChild(b);div.appendChild(document.createTextNode(cleanChat(msg)));box.appendChild(div);box.scrollTop=box.scrollHeight}
+function meetingBotReply(msg){if(!meeting)return;const low=msg.toLocaleLowerCase('tr-TR');const candidates=bots.filter(b=>b.alive);if(!candidates.length)return;const b=candidates[Math.floor(Math.random()*candidates.length)];let reply;if(low.includes('kim')||low.includes('şüpheli'))reply=(b.suspicion.player||0)>0.5?player.name+' hakkında şüphem var. Yakınında garip bir şey oldu.':'Şimdilik emin değilim. Herkes nerede olduğunu anlatsın.';else if(low.includes('nerede')||low.includes('nereye')){const c=cellOf(b.x,b.y),r=roomGrid[c.y]?.[c.x]??-1;reply='Ben '+(r>=0?roomDefs[r].name:'koridor')+' tarafındaydım.'}else if(low.includes('rapor')||low.includes('ceset'))reply='Cesedi kim buldu? Son gören kişi önemli.';else if(low.includes('atla'))reply='Kanıt yoksa atlamak daha mantıklı olabilir.';else reply=['Ben görev yapıyordum, başka bir şey görmedim.','Birbirimizi dinleyelim.','Bence konumları karşılaştıralım.','Şüpheli birini gören var mı?'][Math.floor(Math.random()*4)];setTimeout(()=>{if(meeting){setSpeech(b,reply);addMeetingChat(b.name,reply)}},450+Math.random()*550)}
+function sendMeetingChat(e){e.preventDefault();e.stopPropagation();if(!meeting){showToast('Sohbet yalnızca toplantılarda açık.');return}if(!playerAlive){showToast('Hayaletler yaşayan mürettebata yazamaz.');return}const input=document.getElementById('meetingChatInput');if(!input)return;const msg=cleanChat(input.value);if(!msg){input.focus();return}addMeetingChat('Sen',msg);input.value='';input.focus();meetingBotReply(msg)}
+function sendChat(e){e.preventDefault();e.stopPropagation();showToast('Sohbete yalnızca toplantı sırasında yazabilirsin.');}
+document.getElementById('chatForm').addEventListener('submit',sendChat);
+document.getElementById('sendChat').addEventListener('click',e=>{e.preventDefault();showToast('Sohbet yalnızca toplantılarda açık.');});
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();const target=e.target;if(target&&(target.matches('input,textarea,select')||target.isContentEditable)){if(k==='escape')target.blur();return}if(k==='m'){if(running&&!gameEnded)openMap();return}if(k==='c'){if(running)toggleChat();return}if(k==='escape'){document.getElementById('modal').classList.remove('show');return}keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='e')interact();if(k==='r')reportBody();if(k==='k')killTarget();if(k==='v')ventAction();if(k==='t')openTrackerMenu();if(k==='f')openGuardianMenu();if(k==='i')openInfluencerMenu()});
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+canvas.addEventListener('pointerdown',e=>{if(!running||meeting||gameEnded||inVent)return;const r=canvas.getBoundingClientRect(),cam=camera();const tx=(e.clientX-r.left)/r.width*VIEW_W+cam.x,ty=(e.clientY-r.top)/r.height*VIEW_H+cam.y;if(!walkable(tx,ty)){showToast('Bu alana geçiş yok. Bir koridor veya oda seç.');return}clickPath=findPath(player.x,player.y,tx,ty)});
+chooseCharacter('rafa');
+</script>
+</body>
+</html>
